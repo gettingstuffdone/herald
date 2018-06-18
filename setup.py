@@ -13,7 +13,8 @@ setup(name='haproxy-herald',
       license='MIT',
       packages=['herald', 'herald.plugins'],
       install_requires=['gevent==1.3.3',
-                        'pyyaml==3.11'],
+                        'pyyaml==3.11',
+                        'psutil==5.4.6'],
       package_data={'herald.plugins': ['*.py']},
       entry_points={
           'console_scripts': [
