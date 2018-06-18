@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import object
+from past.utils import old_div
+
 import re
 import logging
 
@@ -53,7 +59,7 @@ class HeraldBaseRules(object):
         result = self.evaluate_metric(context)
         return self.process_rules(result)
 
-    def process_rules(value):
+    def process_rules(self, value):
         """
         This should implement the rules logic.
 
@@ -93,7 +99,7 @@ class HeraldPatterns(HeraldBaseRules):
 
         """
         for rule in self.rules:
-            action, pattern = rule.items()[0]
+            action, pattern = list(rule.items())[0]
             if re.match(pattern, str(value)):
                 return action
         else:
@@ -155,8 +161,7 @@ class HeraldThresholds(HeraldBaseRules):
                     threshold = rule['pct']
                     min_resp = rule.get('min_threshold_response', 1)
                 else:
-                    action, threshold = rule.items()[0]
-
+                    action, threshold = list(rule.items())[0]
                 m = re.match(self.op_regex, str(threshold))
                 op, th = m.groups()
 
@@ -189,7 +194,7 @@ class HeraldThresholds(HeraldBaseRules):
         try:
             value = float(value)
         except ValueError:
-            print 'value must be of type int or float! value is {}'.format(value)
+            print('value must be of type int or float! value is {}'.format(value))
             raise
 
         for rule in self._parsed_rules:
@@ -197,17 +202,16 @@ class HeraldThresholds(HeraldBaseRules):
             if action == 'pct':
                 # calculate the percentage of traffic to be sent based on
                 # the threshold. The op value is ignored.
-                pct = int(100 - ((value / float(threshold)) * 100))
+                pct = int(100 - ((old_div(value, float(threshold))) * 100))
                 if pct <= 0:
                     min_resp = rule[3]
-                    self.logger.warn('Pct value {} less than 0, responding with min '
-                                     'threshold response {}'.format(pct,
-                                                                    min_resp))
+                    self.logger.warning('Pct value {} less than 0, responding with min '
+                                        'threshold response {}'.format(pct, min_resp))
                     return str(min_resp) + '%'
                 # noop if pct is greater than 100
                 elif pct > 100:
-                    self.logger.warn('Pct value {} greather thatn 100 responding with '
-                                     'empty string (noop)'.format(pct))
+                    self.logger.warning('Pct value {} greater than 100 responding with '
+                                        'empty string (noop)'.format(pct))
                     return ''
                 else:
                     return str(pct) + '%'

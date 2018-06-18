@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 from gevent import monkey
 monkey.patch_all()
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import socket
 import json
 from herald.baseplugin import HeraldPlugin
@@ -23,13 +26,13 @@ class HTTPPlugin(HeraldPlugin):
         self.is_json = kwargs.get('is_json', False)
 
     def run(self, timeout=10):
-        req = urllib2.Request(self.url)
+        req = urllib.request.Request(self.url)
         response = ''
         try:
-            infourl = urllib2.urlopen(req, timeout=timeout)
-        except urllib2.HTTPError as e:
+            infourl = urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.HTTPError as e:            
             self.logger.warning('HTTPError: get failed, http code: %s', e.code)
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             self.logger.critical('URLError: failed to reach a server, '
                                  'reason: %s', e.reason)
         except socket.timeout:

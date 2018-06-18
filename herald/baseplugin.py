@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from builtins import str
+from builtins import object
 from gevent import monkey
+from future.utils import with_metaclass
 monkey.patch_all()
 
 import time
@@ -37,7 +40,7 @@ class PluginMount(type):
             cls.plugins.append(cls)
 
 
-class HeraldBasePlugin(object):
+class HeraldBasePlugin(with_metaclass(PluginMount, object)):
     """
     All plugins should inherit from this class.
 
@@ -45,7 +48,6 @@ class HeraldBasePlugin(object):
     all plugin classes are available as a list in the `plugins` attribute.
 
     """
-    __metaclass__ = PluginMount
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
@@ -263,17 +265,17 @@ class HeraldPlugin(HeraldBasePlugin):
             self.run()
 
         if self.is_stale():
-            self.logger.warn('detected stale state, staleness_interval'
-                             ' is set to {}s'.format(self.staleness_interval))
+            self.logger.warning('detected stale state, staleness_interval'
+                                ' is set to {}s'.format(self.staleness_interval))
 
             if self.staleness_response and self.staleness_response != 'noop':
-                self.logger.warn('responding with staleness_response :'
-                                 ' {}'.format(self.staleness_response))
+                self.logger.warning('responding with staleness_response :'
+                                    ' {}'.format(self.staleness_response))
                 return self.staleness_response
             else:
-                self.logger.warn('staleness_response is not set or set to'
-                                 ' "noop", responding with empty string :'
-                                 ' {}'.format(self.staleness_response))
+                self.logger.warning('staleness_response is not set or set to'
+                                    ' "noop", responding with empty string :'
+                                    ' {}'.format(self.staleness_response))
                 return ''
         else:
             state = self.read_state()
@@ -303,8 +305,8 @@ class HeraldPlugin(HeraldBasePlugin):
                 self.g.join()
                 self.logger.info('stopped')
             except gevent.Timeout:
-                self.logger.warn('could not stop within stop_timeout {}, '
-                                 'terminating with kill'.format(
+                self.logger.warning('could not stop within stop_timeout {}, '
+                                    'terminating with kill'.format(
                                      self.stop_timeout))
                 self.g.kill()
             finally:

@@ -12,7 +12,7 @@ setup(name='haproxy-herald',
       author_email='raghusiddarth@gmail.com',
       license='MIT',
       packages=['herald', 'herald.plugins'],
-      install_requires=['gevent==1.0.2',
+      install_requires=['gevent==1.3.3',
                         'pyyaml==3.11'],
       package_data={'herald.plugins': ['*.py']},
       entry_points={
