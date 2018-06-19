@@ -58,7 +58,7 @@ class SyscallPlugin(HeraldPlugin):
 
         self.paths = []
         self.io_data = None
-        self.cpu_percent_data = None
+        self.cpu_percent_data = 0.0
         self.paths_data = None
         self.mem_virtual_data = None
         self.mem_swap_data = None
