@@ -164,7 +164,7 @@ class SyscallPlugin(HeraldPlugin):
 
     def __collect__(self):
         self.io_data = psutil.net_io_counters(pernic=True)
-        self.cpu_percent_data = psutil.cpu_percent(interval=None)
+        self.cpu_percent_data = self.cpu_percent_data * 0.7 + psutil.cpu_percent(interval=None) * 0.3
         self.mem_virtual_data = psutil.virtual_memory()
         self.mem_swap_data = psutil.swap_memory()
         self.paths_data = [psutil.disk_usage(p["path"]) for p in self.paths]
