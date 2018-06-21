@@ -160,7 +160,7 @@ class SyscallPlugin(HeraldPlugin):
         self.logger.debug('Load: {}'.format(messages))
 
         # todo take io and memory into account in the future.
-        return {'health': '', 'use-rate': cpu_data}
+        return {'health': 'healthy', 'use-rate': cpu_data}
 
     def __collect__(self):
         self.io_data = psutil.net_io_counters(pernic=True)
