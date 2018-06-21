@@ -155,7 +155,7 @@ def handle_requests(socket, addr, plugin):
     logging.debug("received connect from {}".format(addr))
     state = plugin.respond()
     logging.debug("writing state: {}".format(state))
-    socket.send(str(state)+"\n")
+    socket.send((str(state)+"\n").encode('UTF-8'))
 
 
 def start_server(args, config, plugin):
