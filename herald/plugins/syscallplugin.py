@@ -56,9 +56,14 @@ class SyscallPlugin(HeraldPlugin):
     def __init__(self, *args, **kwargs):
         super(SyscallPlugin, self).__init__(*args, **kwargs)
 
+        self.nic = kwargs.get('nic', None)
+        self.nic_speed = kwargs.get('nic_speed', None)
+        self.available_mem_thd = kwargs.get('available_memory_thd', 0)
+        self.interval = kwargs.get('interval', 5)
         self.paths = []
         self.io_data = None
         self.cpu_percent_data = 0.0
+        self.net_percent_data = 0.0
         self.paths_data = None
         self.mem_virtual_data = None
         self.mem_swap_data = None
@@ -111,17 +116,20 @@ class SyscallPlugin(HeraldPlugin):
             }
         }
 
-        network_data = [{
-            "name"        : k,
-            "bytes_sent"  : self.measures[k + ".bytes_sent"].update_and_get(self.io_data[k].bytes_sent),
-            "bytes_recv"  : self.measures[k + ".bytes_recv"].update_and_get(self.io_data[k].bytes_recv),
-            "packets_sent": self.measures[k + ".packets_sent"].update_and_get(self.io_data[k].packets_sent),
-            "packets_recv": self.measures[k + ".packets_recv"].update_and_get(self.io_data[k].packets_recv),
-            "errin"       : self.measures[k + ".errin"].update_and_get(self.io_data[k].errin),
-            "errout"      : self.measures[k + ".errout"].update_and_get(self.io_data[k].errout),
-            "dropin"      : self.measures[k + ".dropin"].update_and_get(self.io_data[k].dropin),
-            "dropout"     : self.measures[k + ".dropout"].update_and_get(self.io_data[k].dropout),
-        } for k in self.io_data]
+        if self.nic in self.io_data:
+            network_data = {
+                "name"        : self.nic,
+                "bytes_sent"  : self.measures[self.nic + ".bytes_sent"].update_and_get(self.io_data[self.nic].bytes_sent),
+                "bytes_recv"  : self.measures[self.nic + ".bytes_recv"].update_and_get(self.io_data[self.nic].bytes_recv),
+                "packets_sent": self.measures[self.nic + ".packets_sent"].update_and_get(self.io_data[self.nic].packets_sent),
+                "packets_recv": self.measures[self.nic + ".packets_recv"].update_and_get(self.io_data[self.nic].packets_recv),
+                "errin"       : self.measures[self.nic + ".errin"].update_and_get(self.io_data[self.nic].errin),
+                "errout"      : self.measures[self.nic + ".errout"].update_and_get(self.io_data[self.nic].errout),
+                "dropin"      : self.measures[self.nic + ".dropin"].update_and_get(self.io_data[self.nic].dropin),
+                "dropout"     : self.measures[self.nic + ".dropout"].update_and_get(self.io_data[self.nic].dropout),
+            }
+        else:
+            network_data = {}
 
         paths = []
         for idx, p in enumerate(self.paths):
@@ -154,13 +162,26 @@ class SyscallPlugin(HeraldPlugin):
             "mem": mem_data,
             "io_disks": [{"io_disk": io_disk} for io_disk in io_disks],
             "paths": [{"disk": path} for path in paths],
-            "networks": [{"network": ndata} for ndata in network_data],
+            "networks": network_data,
         }
 
         self.logger.debug('Load: {}'.format(messages))
+        free_mem = mem_data['virtual']['available']
+        if free_mem < self.available_mem_thd:
+            self.logger.fatal('Out of memory. Only {} bytes left!'.format(free_mem))
+            health_status = 'unhealthy'
+        else:
+            health_status = 'healthy'
 
-        # todo take io and memory into account in the future.
-        return {'health': 'healthy', 'use-rate': cpu_data}
+        network_usage = network_data.get("write_bytes", 0) * 100 / self.interval / self.nic_speed
+        if network_usage > 10:
+            self.logger.info('Network io used {:.2f}%'.format(network_usage))
+        if self.cpu_percent_data > 10:
+            self.logger.info('Cpu usage {:.2f}%'.format(self.cpu_percent_data))
+
+        self.net_percent_data = self.net_percent_data * 0.7 + network_usage * 0.3
+
+        return {'health': health_status, 'use-rate': max(cpu_data, self.net_percent_data)}
 
     def __collect__(self):
         self.io_data = psutil.net_io_counters(pernic=True)

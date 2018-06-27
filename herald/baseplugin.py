@@ -10,6 +10,7 @@ monkey.patch_all()
 import time
 import logging
 import gevent
+import sys
 from .rules import HeraldPatterns, HeraldThresholds
 
 
@@ -54,6 +55,9 @@ class HeraldBasePlugin(with_metaclass(PluginMount, object)):
         self.state = ''
         self.plugin_enabled = True
         self.logger = logging.getLogger('plugin_'+self.name)
+        if sys.platform == "linux":
+            handler = logging.handlers.SysLogHandler(address='/dev/log')
+            self.logger.addHandler(handler)
 
     def read_state(self):
         return self.state

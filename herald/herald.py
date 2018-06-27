@@ -19,7 +19,9 @@ from .baseplugin import HeraldBasePlugin
 
 # TODO: Add tests
 #       option to use syslog for logging
-#       reloading config + plugins
+#       reloading config + plugin
+
+logger = None
 
 
 def start_plugin(plugin):
@@ -27,7 +29,8 @@ def start_plugin(plugin):
     Starts the passed in plugin.
 
     """
-    logging.info("starting {}".format(plugin.name))
+    global logger
+    logger.info("starting {}".format(plugin.name))
     plugin.start()
 
 
@@ -42,8 +45,7 @@ def load_all_plugins(plugins_dir):
     to the respective class as the value.
 
     """
-    logger = logging.getLogger('plugin_loader')
-
+    global logger
     for fn in os.listdir(plugins_dir):
         if fn.endswith('.py'):
             name = os.path.basename(fn)[:-3]
@@ -71,14 +73,13 @@ def load_plugin(plugins_list, plugins_config):
     in plugins_config.
 
     """
-    logger = logging.getLogger('plugin_loader')
+    global logger
     # check for 'default' flag
     default_plugin = [p for p in plugins_config if 'default' in p]
     # else take the first one in the list
     if not default_plugin:
         default_plugin = plugins_config[0]
-    logger.debug('using plugin {}'.format(
-        default_plugin['herald_plugin_name']))
+    logger.debug('using plugin {}'.format(default_plugin['herald_plugin_name']))
 
     try:
         PluginClass = plugins_list.get(default_plugin['herald_plugin_name'])
@@ -99,14 +100,15 @@ def stop_services(server, plugin):
 
     """
     global HERALD_STOPPING
+    global logger
     if not HERALD_STOPPING:
         HERALD_STOPPING = True
-        logging.info('stopping plugin {}'.format(plugin.name))
+        logger.info('stopping plugin {}'.format(plugin.name))
         plugin.stop()
-        logging.info('stopping herald server')
+        logger.info('stopping herald server')
         server.stop()
     else:
-        logging.info('stop is already in progress')
+        logger.info('stop is already in progress')
 
 
 def setup_handlers(server, plugin):
@@ -124,10 +126,16 @@ def setup_logging(args):
     logformat.
 
     """
+    global logger
     loglevel = getattr(logging, args.loglevel.upper())
     logformat = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 
     logging.basicConfig(format=logformat, level=loglevel)
+    logger = logging.getLogger('Herald')
+
+    if sys.platform == "linux":
+        handler = logging.handlers.SysLogHandler(address='/dev/log')
+        logger.addHandler(handler)
 
 
 def load_configuration(config_file):
@@ -135,11 +143,11 @@ def load_configuration(config_file):
     Load and return yaml configuration.
 
     """
-
+    global logger
     with open(config_file) as config_fd:
         config = yaml.load(config_fd)
 
-    logging.debug('config is {}'.format(config))
+    logger.debug('config is {}'.format(config))
     return config
 
 
@@ -152,9 +160,10 @@ def handle_requests(socket, addr, plugin):
     a new line and sent to Haproxy.
 
     """
-    logging.debug("received connect from {}".format(addr))
+    global logger
+    logger.debug("received connect from {}".format(addr))
     state = plugin.respond()
-    logging.debug("writing state: {}".format(state))
+    logger.debug("writing state: {}".format(state))
     socket.send((str(state)+"\n").encode('UTF-8'))
 
 
@@ -164,11 +173,12 @@ def start_server(args, config, plugin):
     function.
 
     """
+    global logger
     listen = (config.get('bind', args.bind), config.get('port', args.port))
     handler = partial(handle_requests, plugin=plugin)
     server = StreamServer(listen, handler)
 
-    logging.info("started listening {}".format(listen))
+    logger.info("started listening {}".format(listen))
     server.start()
     return server
 
