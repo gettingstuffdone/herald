@@ -170,12 +170,14 @@ class SyscallPlugin(HeraldPlugin):
         self.logger.debug('Load: {}'.format(messages))
         free_mem = mem_data['virtual']['available']
         if free_mem < self.available_mem_thd:
-            self.logger.fatal('Out of memory. Only {} bytes left!'.format(free_mem))
+            self.logger.fatal('Out of memory. Only {} bytes left!'.
+                              format(free_mem))
             health_status = 'unhealthy'
         else:
             health_status = 'healthy'
 
-        network_usage = network_data.get("write_bytes", 0) * 100 / self.interval / self.nic_speed
+        network_usage = network_data.get("write_bytes", 0) * 100 * 8 \
+                        / self.interval / self.nic_speed
         if network_usage > 10:
             self.logger.info('Network io used {:.2f}%'.format(network_usage))
         if self.cpu_percent_data > 10:
