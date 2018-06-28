@@ -50,6 +50,8 @@ plugins:
 
     available_memory_thd: 1000000000
 
+    userate_thd: 10
+
     # pattern rules
     # keys from the response can be used in the patterns_metric or
     # thresholds_metric. expression needs to be evaualted in safe context

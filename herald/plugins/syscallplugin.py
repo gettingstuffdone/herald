@@ -60,6 +60,7 @@ class SyscallPlugin(HeraldPlugin):
         self.nic_speed = kwargs.get('nic_speed', None)
         self.available_mem_thd = kwargs.get('available_memory_thd', 0)
         self.interval = kwargs.get('interval', 5)
+        self.userate_thd = kwargs.get('userate_thd', 10)
         self.paths = []
         self.io_data = None
         self.cpu_percent_data = 0.0
@@ -178,9 +179,9 @@ class SyscallPlugin(HeraldPlugin):
 
         network_usage = network_data.get("write_bytes", 0) * 100 * 8 \
                         / self.interval / self.nic_speed
-        if network_usage > 10:
+        if network_usage > self.userate_thd:
             self.logger.info('Network io used {:.2f}%'.format(network_usage))
-        if self.cpu_percent_data > 10:
+        if self.cpu_percent_data > self.userate_thd:
             self.logger.info('Cpu usage {:.2f}%'.format(self.cpu_percent_data))
 
         self.net_percent_data = self.net_percent_data * 0.7 + network_usage * 0.3
