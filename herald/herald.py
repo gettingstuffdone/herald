@@ -12,7 +12,6 @@ import signal
 import yaml
 import argparse
 import gevent
-import logging
 from functools import partial
 from gevent.server import StreamServer
 from .baseplugin import HeraldBasePlugin
@@ -127,6 +126,7 @@ def setup_logging(args):
 
     """
     global logger
+    import logging
     loglevel = args.loglevel.upper()
     logformat = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 
