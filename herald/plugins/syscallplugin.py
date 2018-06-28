@@ -79,7 +79,9 @@ class SyscallPlugin(HeraldPlugin):
             self.logger.debug('Start collect statistics ...')
             self.__collect__()
             data = self.__process__()
-            self.logger.debug('Load: {}'.format(data))
+            self.logger.debug(
+                'Statistics: \'health\' : {}, \'use-rate\': {:.2f}%'.
+                    format(data['health'], data['use-rate']))
         except IOError as e:
             self.logger.critical('could not read file, error: %s' % str(e))
             return
