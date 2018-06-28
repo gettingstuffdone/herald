@@ -21,14 +21,7 @@ from .baseplugin import HeraldBasePlugin
 #       option to use syslog for logging
 #       reloading config + plugin
 
-logformat = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
-
-logging.basicConfig(format=logformat, level=logging.DEBUG)
-logger = logging.getLogger('Herald')
-
-if sys.platform == "linux":
-    handler = logging.handlers.SysLogHandler(address='/dev/log')
-    logger.addHandler(handler)
+logger = None
 
 
 def start_plugin(plugin):
@@ -135,8 +128,15 @@ def setup_logging(args):
     """
     global logger
     loglevel = getattr(logging, args.loglevel.upper())
-    logger.setLevel(loglevel)
+    logformat = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 
+    logging.basicConfig(format=logformat, level=loglevel)
+    logger = logging.getLogger('Herald')
+
+    if sys.platform == "linux":
+        import logging.handlers
+        handler = logging.handlers.SysLogHandler(address='/dev/log')
+        logger.addHandler(handler)
 
 
 def load_configuration(config_file):
