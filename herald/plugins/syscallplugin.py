@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 import math
 import psutil
 import time
@@ -58,7 +57,7 @@ class SyscallPlugin(HeraldPlugin):
 
         self.nic = kwargs.get('nic', None)
         self.nic_speed = kwargs.get('nic_speed', None)
-        self.available_mem_thd = kwargs.get('available_memory_thd', 0)
+        self.available_mem_thd = kwargs.get('available_memory_thd', 1000000000)
         self.interval = kwargs.get('interval', 5)
         self.userate_thd = kwargs.get('userate_thd', 10)
         self.paths = []
@@ -71,7 +70,6 @@ class SyscallPlugin(HeraldPlugin):
         self.io_disk_data = None
 
         self.measures = {}
-
         self.__collect__()
         self.__register__()
 
@@ -81,7 +79,7 @@ class SyscallPlugin(HeraldPlugin):
             self.__collect__()
             data = self.__process__()
             self.logger.debug(
-                'Statistics: \'health\' : {}, \'use-rate\': {:.2f}%'.
+                'Statistics: \'health\': {}, \'use-rate\': {:.2f}%'.
                     format(data['health'], data['use-rate']))
         except IOError as e:
             self.logger.critical('could not read file, error: %s' % str(e))
@@ -177,7 +175,7 @@ class SyscallPlugin(HeraldPlugin):
         else:
             health_status = 'healthy'
 
-        network_usage = network_data.get("write_bytes", 0) * 100 * 8 \
+        network_usage = network_data.get("bytes_sent", 0) * 100 * 8 \
                         / self.interval / self.nic_speed
         if network_usage > self.userate_thd:
             self.logger.info('Network io used {:.2f}%'.format(network_usage))
