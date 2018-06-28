@@ -127,7 +127,7 @@ def setup_logging(args):
 
     """
     global logger
-    loglevel = getattr(logging, args.loglevel.upper())
+    loglevel = args.loglevel.upper()
     logformat = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 
     logging.basicConfig(format=logformat, level=loglevel)
