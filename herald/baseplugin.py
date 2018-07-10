@@ -201,9 +201,9 @@ class HeraldPlugin(HeraldBasePlugin):
                 state = self.process_rules(result)
                 if state:
                     if 'cpu' in result and 'mem' in result and 'net' in result:
-                        state += '# {:.2f} {:.2f} {}'.format(result['cpu'],
-                                                             result['net'],
-                                                             result['mem'])
+                        state += ' # {:.2f} {:.2f} {}'.format(result['cpu'],
+                                                              result['net'],
+                                                              result['mem'])
                     self.write_state(state)
                 # if no state means none of the rules matched
                 else:
