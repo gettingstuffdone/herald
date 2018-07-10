@@ -184,7 +184,11 @@ class SyscallPlugin(HeraldPlugin):
 
         self.net_percent_data = self.net_percent_data * 0.7 + network_usage * 0.3
 
-        return {'health': health_status, 'use-rate': max(cpu_data, self.net_percent_data)}
+        return {'health': health_status,
+                'use-rate': max(cpu_data, self.net_percent_data),
+                'cpu': cpu_data,
+                'mem': int(free_mem/1000000),
+                'net': self.net_percent_data}
 
     def __collect__(self):
         self.io_data = psutil.net_io_counters(pernic=True)

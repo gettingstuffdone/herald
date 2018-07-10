@@ -200,6 +200,10 @@ class HeraldPlugin(HeraldBasePlugin):
                 result = self.run()
                 state = self.process_rules(result)
                 if state:
+                    if 'cpu' in result and 'mem' in result and 'net' in result:
+                        state += '# {:.2f} {:.2f} {}'.format(result['cpu'],
+                                                             result['net'],
+                                                             result['mem'])
                     self.write_state(state)
                 # if no state means none of the rules matched
                 else:
@@ -237,6 +241,8 @@ class HeraldPlugin(HeraldBasePlugin):
         # TODO: add state validation here
         # log if two conflicting states are sent, e.g. 'up down'
         # haproxy honours the last state in the list
+        if 'up' in state:
+            state.append('100%')
         return ' '.join(state)
 
     def run(self):
