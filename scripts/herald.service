@@ -1,0 +1,14 @@
+[Unit]
+Description=DLive Herald Service for Haproxy
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/herald
+ExecStart=/usr/local/bin/herald
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
