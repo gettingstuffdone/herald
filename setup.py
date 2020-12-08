@@ -4,7 +4,7 @@
 from setuptools import setup
 
 setup(name='haproxy-herald',
-      version='0.1.0',
+      version='0.1.1',
       description='Haproxy load feedback and check agent',
       url='https://github.com/helpshift/herald',
       download_url='https://github.com/helpshift/herald/tarball/0.1.0',
